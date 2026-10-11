@@ -1,0 +1,261 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {
+          "messageStatusUpdates": [
+            "all"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        16,
+        -48
+      ],
+      "id": "7ce2a6cc-f141-414b-8020-faf7eb78c2eb",
+      "name": "WhatsApp Trigger",
+      "webhookId": "462c682d-aa21-46ca-8aa3-1b4d61a532ec",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "8QGGaaE8KEyUemVN",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messages[0].text.body }}",
+        "options": {
+          "systemMessage": "Aap TallyBook POS ke official WhatsApp customer support AI agent ho.\n\nPrimary Goal:\nUser ke TallyBook POS se related sawalon ka clear, accurate aur practical jawab dena.\n\nLanguage & Tone:\n- Hindi ya Hinglish use karo\n- WhatsApp-friendly, short aur professional tone rakho\n- Technical terms ko simple words me samjhao\n\nStrict Rules:\n1. Sirf TallyBook POS se related sawalon ka jawab do\n2. Har jawab seedha point par ho, unnecessary baatein mat likho\n3. Har message ke end me same line repeat mat karo\n4. Follow-up question sirf tab pucho jab user ka sawal incomplete ho\n5. Agar user ka sawal TallyBook POS se related nahi ho, politely reply karo:\n   \"Is sawal ke liye TallyBook POS support available nahi hai.\"\n\nCapabilities:\n- Software installation & setup help\n- Sales, Purchase, Stock, GST, Reports guidance\n- Login, Backup, Restore support\n- Common errors & troubleshooting\n- Desktop & mobile app related help\n\nResponse Format:\n- Steps ko numbered list ya bullet points me do\n- Emojis sirf jab zaroori ho (maximum 1–2)\n- Answer complete ho to wahi reply khatam karo\n\nFallback:\nAgar exact solution available na ho to clearly bolo:\n\"Is issue ke liye detail check zaroori hai, thodi aur information batayein.\"\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        256,
+        -48
+      ],
+      "id": "d99b591d-8c75-4180-a74d-4b21db4a354c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        176
+      ],
+      "id": "08292129-cd13-4222-a4fc-3f382e70a628",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "W2ZbmFRLd66767oq",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        64,
+        160
+      ],
+      "id": "15c693f4-0cbc-4f01-b02c-57c7d59dac0f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "=941974578997391",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}\n",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        -48
+      ],
+      "id": "23d43757-04d4-4f3b-be23-336320c0c503",
+      "name": "Send message",
+      "webhookId": "72b6eb67-e45c-4b06-be3b-2764b52e4fda",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "SrFImmdcojpyyw7B",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1YTasNz2mwhUroH2ODm9GUM3hm7kJd7xb1V64Ff4cbcs",
+          "mode": "list",
+          "cachedResultName": "Customers_Det",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YTasNz2mwhUroH2ODm9GUM3hm7kJd7xb1V64Ff4cbcs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YTasNz2mwhUroH2ODm9GUM3hm7kJd7xb1V64Ff4cbcs/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Phon Number": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+            "Bot Response": "={{ $('AI Agent').item.json.output }}",
+            "Users Messages": "={{ $('WhatsApp Trigger').item.json.messages[0].text.body }}",
+            "TimeTemp": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "TimeTemp",
+              "displayName": "TimeTemp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phon Number",
+              "displayName": "Phon Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Users Messages",
+              "displayName": "Users Messages",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Bot Response",
+              "displayName": "Bot Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        -48
+      ],
+      "id": "e269ec40-00ed-4e67-a2d7-20975eccf3ea",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aZ8wgDH6v0cU1P2l",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "eb989dcd-a7ca-44e3-b868-df069b28cd95",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "70d41d20d67a9d0a2c5d34745ba64ff44d65d3390fe8dac2a5ad16e776f68716"
+  },
+  "id": "Q17Qxzs7uYlli9QRyWLJ4",
+  "tags": []
+}
